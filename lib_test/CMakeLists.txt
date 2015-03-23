@@ -1,0 +1,9 @@
+
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/lib)
+
+AUX_SOURCE_DIRECTORY(. sources)
+
+ADD_EXECUTABLE(lib_test ${sources})
+
+TARGET_LINK_LIBRARIES(lib_test lib ${GTEST_BOTH_LIBRARIES} pthread)
+
