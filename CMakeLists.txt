@@ -32,10 +32,16 @@ IF(GTEST_FOUND)
     INCLUDE_DIRECTORIES(${GTEST_INCLUDE_DIRS})
 ENDIF()
 
+
+######################################################
+# Compiler options
+######################################################
+set (CMAKE_CXX_FLAGS "-fpermissive -std=c++11")
+
 ######################################################
 # Include subdirectories 
 #####################################################
 ADD_SUBDIRECTORY(lib)
 ADD_SUBDIRECTORY(lib_test)
-ADD_SUBDIRECTORY(bin)
+
 
