@@ -28,21 +28,28 @@ template<typename EdgeT = Edge>
 class Vertex
 {
 public:
-    using EdgeType = EdgeT;
-    using Edges    = std::vector<EdgeType>;
+    using EdgeType       = EdgeT;
+    using Edges          = std::vector<EdgeType>;
+    using iterator       = typename Edges::iterator;
+    using const_iterator = typename Edges::const_iterator;
     
     Vertex() : m_id(0)
     {}
 
     Vertex(unsigned int id) : m_id(id)
-    {
-
-    }
+    {}
 
     void addEdge(const EdgeType & edge)
     {
         m_edges.push_back(edge);
     }
+
+    iterator       begin()  { return m_edges.begin();  }
+    const_iterator cbegin() { return m_edges.cbegin(); }
+    iterator       end()    { return m_edges.end();    }
+    const_iterator cend()   { return m_edges.cend();   }
+    
+    unsigned int getId() const { return m_id; }
 
 private:
     unsigned int m_id;
@@ -86,10 +93,9 @@ public:
     /*
      * Breadth first search
      */
-     /*
     void bfs(int start)
     {
-        if (start > m_vertices.size() - 1)
+        /*if (start > m_vertices.size() - 1)
         {
             throw std::out_of_range("Start position is out of range");
         }
@@ -108,7 +114,7 @@ public:
             //process vertice early       
             processed[vertice] = true;
             
-            Edges const & edges = m_vertices.at(vertice); 
+            Edges const & edges = m_vertices.at(vertice).; 
             std::for_each(edges.begin(), edges.end(), 
                 [&] (EdgeType const & edge)
                 {
@@ -125,9 +131,8 @@ public:
                 }
            );
            // process vertice late
-        }
+        }*/
     }
-    */
 
 private:
     Vertices m_vertices;

@@ -15,6 +15,28 @@ TEST(GraphTestSuite, TestEdge)
 
 }
 
+TEST(GraphTestSuite, VerticeEdge) 
+{
+    Edge e1(10);
+    Edge e2(11);
+    Edge e3(12);
+
+    Vertex<> v(10);
+    
+    v.addEdge(e1);
+    v.addEdge(e2);
+    v.addEdge(e3);
+    
+    EXPECT_EQ(10, v.getId());
+   
+    int i = 10;
+    for (Edge const & e: v )
+    {
+        EXPECT_EQ(i++, e.getDestination());
+    } 
+}
+
+
 TEST(GraphTestSuite, Graph)
 {
     Graph<> g(3);
