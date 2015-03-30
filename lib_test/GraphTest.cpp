@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include <iostream>
+#include <stdexcept>
 
 #include "Graph.h"
 
@@ -17,7 +18,7 @@ TEST(GraphTestSuite, TestEdge)
 TEST(GraphTestSuite, Graph)
 {
     Graph<> g(3);
-    
+
     EXPECT_NO_THROW(g.addEdge(0,1));
     EXPECT_NO_THROW(g.addEdge(1,2));
     EXPECT_THROW(g.addEdge(2,3), std::out_of_range);

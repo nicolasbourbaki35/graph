@@ -2,47 +2,82 @@
 #include <queue>
 #include <algorithm>
 
+
 /*
  * Edge
  */
 class Edge
 {
 public:
-    Edge(size_t dest, int weight = 0) 
+    Edge(unsigned int dest, int weight = 0) 
         : m_destination(dest)
         , m_weight(weight)
     {}
 
-    size_t getDestination() const { return m_destination; };
-    int    getWeigth()      const { return m_weight;      };
+    unsigned int getDestination() const { return m_destination; };
+    int          getWeigth()      const { return m_weight;      };
 
 private:
-    size_t m_destination;
+    unsigned int m_destination;
     int m_weight;
 };
+
+
+
+template<typename EdgeT = Edge>
+class Vertex
+{
+public:
+    using EdgeType = EdgeT;
+    using Edges    = std::vector<EdgeType>;
+    
+    Vertex() : m_id(0)
+    {}
+
+    Vertex(unsigned int id) : m_id(id)
+    {
+
+    }
+
+    void addEdge(const EdgeType & edge)
+    {
+        m_edges.push_back(edge);
+    }
+
+private:
+    unsigned int m_id;
+    Edges m_edges;
+};
+
 
 /*
  * Graph data struct
  */
-template<typename EdgeT = Edge>
+template<typename VertexT = Vertex< Edge > >
 class Graph
 {
 public:
-    using EdgeType  = EdgeT;
-    using Edges     = std::vector<EdgeType>;
-    using NodeEdges = std::vector<Edges>;
+    using VertexType  = VertexT;
+    using EdgeType  = typename VertexType::EdgeType;
+    using Vertices  = std::vector<VertexType>;
     
-    Graph(size_t capacity) : 
-        m_node_edges(capacity)
-    {}
-    
-    void addEdge(size_t from, size_t to, int weight = 0, bool directed = false)
+    Graph(size_t capacity)
     {
-        Edge new_edge(to, weight);
+        for (unsigned int index = 0; index < capacity; ++index)
+        {
+            m_vertices.push_back(VertexType(index));
+        }
+    }
+    
+    void addEdge(unsigned int from, unsigned int to, int weight = 0, bool directed = false)
+    {
+        const EdgeType new_edge(to, weight);
+
+        m_vertices.at(from) = VertexType(from);
         
-        m_node_edges.at(from).push_back(new_edge);
+        m_vertices.at(from).addEdge(new_edge);
         
-        if (directed == false)
+        if (!directed)
         {
             addEdge(to, from, weight, true);
         }
@@ -51,16 +86,17 @@ public:
     /*
      * Breadth first search
      */
+     /*
     void bfs(int start)
     {
-        if (start > m_node_edges.size() - 1)
+        if (start > m_vertices.size() - 1)
         {
             throw std::out_of_range("Start position is out of range");
         }
 
         std::queue<size_t>  q;
-        std::vector<bool> discovered(m_node_edges.size(), false);
-        std::vector<bool> processed (m_node_edges.size(), false);
+        std::vector<bool> discovered(m_vertices.size(), false);
+        std::vector<bool> processed (m_vertices.size(), false);
         
         q.push(start); 
         discovered[start] = true;
@@ -72,7 +108,7 @@ public:
             //process vertice early       
             processed[vertice] = true;
             
-            Edges const & edges = m_node_edges.at(vertice); 
+            Edges const & edges = m_vertices.at(vertice); 
             std::for_each(edges.begin(), edges.end(), 
                 [&] (EdgeType const & edge)
                 {
@@ -91,8 +127,9 @@ public:
            // process vertice late
         }
     }
+    */
 
 private:
-    NodeEdges m_node_edges;
+    Vertices m_vertices;
 };
 
