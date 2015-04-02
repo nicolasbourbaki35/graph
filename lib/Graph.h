@@ -1,7 +1,17 @@
+#ifndef _GRAPH_H_
+#define _GRAPH_H_
+
 #include <vector>
 #include <queue>
 #include <algorithm>
+#include <functional>
+#include <stdexcept>
+#include <ostream>
 
+#include "Graphviz.h"
+
+namespace GraphLib 
+{
 
 /*
  * Edge
@@ -9,20 +19,22 @@
 class Edge
 {
 public:
-    Edge(unsigned int dest, int weight = 0) 
-        : m_destination(dest)
+    Edge(unsigned int source, unsigned int dest, int weight = 0) 
+        : m_source(source)
+        , m_destination(dest)
         , m_weight(weight)
-    {}
+    {
+    }
 
+    unsigned int getSource()      const { return m_source;      };
     unsigned int getDestination() const { return m_destination; };
-    int          getWeigth()      const { return m_weight;      };
+    int          getWeight()      const { return m_weight;      };
 
 private:
+    unsigned int m_source;
     unsigned int m_destination;
     int m_weight;
 };
-
-
 
 template<typename EdgeT = Edge>
 class Vertex
@@ -56,7 +68,6 @@ private:
     Edges m_edges;
 };
 
-
 /*
  * Graph data struct
  */
@@ -64,11 +75,14 @@ template<typename VertexT = Vertex< Edge > >
 class Graph
 {
 public:
-    using VertexType  = VertexT;
-    using EdgeType  = typename VertexType::EdgeType;
-    using Vertices  = std::vector<VertexType>;
+    using VertexType      = VertexT;
+    using EdgeType        = typename VertexType::EdgeType;
+    using Vertices        = std::vector<VertexType>;
+    using VertexProcessor = std::function<void(VertexType&)>;
+    using EdgeProcessor   = std::function<void(EdgeType&)>;
     
-    Graph(size_t capacity)
+    Graph(size_t capacity, std::string caption = "")
+        : m_caption(caption)
     {
         for (unsigned int index = 0; index < capacity; ++index)
         {
@@ -76,26 +90,21 @@ public:
         }
     }
     
-    void addEdge(unsigned int from, unsigned int to, int weight = 0, bool directed = false)
+    void addEdge(EdgeType const & edge, bool directed = false)
     {
-        const EdgeType new_edge(to, weight);
-
-        m_vertices.at(from) = VertexType(from);
-        
-        m_vertices.at(from).addEdge(new_edge);
-        
-        if (!directed)
-        {
-            addEdge(to, from, weight, true);
-        }
+        m_vertices.at(edge.getSource()).addEdge(edge);
     }
+
+    std::string const & getCaption() { return m_caption; } 
 
     /*
      * Breadth first search
      */
-    void bfs(int start)
+    void bfs(unsigned int start
+            , VertexProcessor vp = VertexProcessor()
+            , EdgeProcessor ep = EdgeProcessor())
     {
-        /*if (start > m_vertices.size() - 1)
+        if (start > m_vertices.size() - 1)
         {
             throw std::out_of_range("Start position is out of range");
         }
@@ -109,32 +118,54 @@ public:
 
         while (!q.empty()) 
         {
-            size_t vertice = q.front();
+            size_t vertice_id = q.front();
             q.pop();
-            //process vertice early       
-            processed[vertice] = true;
+            VertexType vertex = m_vertices.at(vertice_id);
+
+            // process vertex 
+            if (vp)
+                vp(vertex);
             
-            Edges const & edges = m_vertices.at(vertice).; 
-            std::for_each(edges.begin(), edges.end(), 
-                [&] (EdgeType const & edge)
+            processed[vertice_id] = true;
+            
+            for(EdgeType & edge : vertex) 
+            {
+                size_t dest = edge.getDestination();
+
+                //process edge
+                if (ep && processed[dest] == false)
                 {
-                    size_t dest = edge.getDestination();
-                    if (processed[dest] == false)
-                    {
-                        //process edge
-                    }
-                    if (discovered[dest] == false)
-                    {
-                        q.push(dest);
-                        discovered[dest] = true;         
-                    }        
+                   ep(edge);
                 }
-           );
-           // process vertice late
-        }*/
+
+                if (discovered[dest] == false)
+                {
+                    q.push(dest);
+                    discovered[dest] = true;         
+                }        
+            }
+        }
+    }
+
+    /*
+     * Print graph to dot format
+     */
+    void printToDot(std::ostream & os, unsigned int start_vertex)
+    {
+        os << "digraph " << m_caption << " {" << std::endl;
+
+        GraphvizEdgeProcessor<EdgeType> ep(os);
+        bfs(start_vertex, VertexProcessor(), ep);
+        
+        os << " } " << std::endl;
     }
 
 private:
     Vertices m_vertices;
+    std::string m_caption;
 };
+
+} // namespace GraphLib
+
+#endif
 
