@@ -5,5 +5,5 @@ AUX_SOURCE_DIRECTORY(. sources)
 
 ADD_EXECUTABLE(lib_test ${sources})
 
-TARGET_LINK_LIBRARIES(lib_test lib ${GTEST_BOTH_LIBRARIES} pthread)
+TARGET_LINK_LIBRARIES(lib_test graph ${GTEST_BOTH_LIBRARIES} pthread)
 
