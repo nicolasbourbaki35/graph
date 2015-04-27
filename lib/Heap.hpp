@@ -36,7 +36,7 @@ void Heap<Data>::bubbleDown(size_t index)
 }
 
 template <typename Data>
-void Heap<Data>::bubbleUp(size_t index)
+size_t Heap<Data>::bubbleUp(size_t index)
 {
     size_t parent_index = parent(index);
 
@@ -46,10 +46,12 @@ void Heap<Data>::bubbleUp(size_t index)
         index = parent_index;
         parent_index = parent(index);
     }
+
+    return index;
 }
 
 template <typename Data>
-bool Heap<Data>::insert(const Data & element)
+size_t Heap<Data>::insert(const Data & element)
 {
     ++m_NbElements;
     if (m_NbElements == (m_InternalData.size() + 1)) {
@@ -59,14 +61,19 @@ bool Heap<Data>::insert(const Data & element)
     {
         m_InternalData[m_NbElements - 1] = element;
     }
-    bubbleUp(m_NbElements - 1);
+    const size_t final_index = bubbleUp(m_NbElements - 1);
 
-    return true;
+    return final_index;
 }
 
 template <typename Data>
-Data Heap<Data>::extractRoot()
+Data Heap<Data>::extractRoot() throw (std::out_of_range)
 {
+    if (m_NbElements == 0)
+    {
+        throw std::out_of_range("extractRoot on empty heap !");
+    }
+
     const Data root = m_InternalData[0];
     m_InternalData[0] = m_InternalData[m_NbElements - 1];
     --m_NbElements;
