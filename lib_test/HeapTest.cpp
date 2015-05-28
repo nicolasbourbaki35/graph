@@ -36,9 +36,9 @@ TEST(HeapTestSuite, TestIndicesGetter)
     class HeapTest : public PHeap
     {
     public:
-        size_t parent  (size_t index) const { return PHeap::parent(index); }
-        size_t left    (size_t index) const { return PHeap::left(index);   }
-        size_t right   (size_t index) const { return PHeap::right(index);  }
+        size_t parent (size_t index) const { return PHeap::parent(index); }
+        size_t left   (size_t index) const { return PHeap::left(index);   }
+        size_t right  (size_t index) const { return PHeap::right(index);  }
     };
 
     HeapTest heap;
@@ -69,6 +69,16 @@ TEST(HeapTestSuite, TestCreateHeap)
     EXPECT_EQ(true, heap.empty());
 }
 
+TEST(HeapTestSuite, TestCreateAndInitHeap) 
+{
+    std::vector<Data> initial_data { {4}, {4}, {8}, {9}, {4}, {12}, {9}, {11}, {13}, {7}, {20} };
+
+    Heap<Data> heap(initial_data);
+
+    EXPECT_TRUE(!heap.empty());
+    EXPECT_EQ(initial_data.size(), heap.size());
+}
+
 TEST(HeapTestSuite, TestInsertHeap)
 {
     Heap<Data> heap;
@@ -77,7 +87,7 @@ TEST(HeapTestSuite, TestInsertHeap)
 
     EXPECT_EQ(0, heap.insert(data));
     EXPECT_EQ(1, heap.size());
-    EXPECT_EQ(false, heap.empty());
+    EXPECT_FALSE(heap.empty());
 }
 
 TEST(HeapTestSuite, TestExtractRootEmpty) 
@@ -125,13 +135,13 @@ TEST(HeapTestSuite, TestInsertionInExistingHeap)
 
     HeapTest heap(initial_data);
 
-    EXPECT_EQ(false, heap.empty());
+    EXPECT_FALSE(heap.empty());
     EXPECT_EQ(initial_data.size(), heap.size());
-    EXPECT_EQ(true, equal(initial_data, heap.getInternalData()));
+    EXPECT_TRUE(equal(initial_data, heap.getInternalData()));
 
     EXPECT_EQ(2, heap.insert(inserted_data));
     EXPECT_EQ(resulting_data.size(), heap.size());
-    EXPECT_EQ(true, equal(resulting_data, heap.getInternalData()));
+    EXPECT_TRUE(equal(resulting_data, heap.getInternalData()));
 }
 
 TEST(HeapTestSuite, TestExtractRootInExistingHeap)
@@ -160,6 +170,118 @@ TEST(HeapTestSuite, TestExtractRootInExistingHeap)
     Data expected = { 4 };
     EXPECT_NO_THROW(extracted = heap.extractRoot());
     EXPECT_EQ(expected, extracted);
+
+    EXPECT_EQ(resulting_data.size(), heap.size());
+    EXPECT_EQ(true, equal(resulting_data, heap.getInternalData()));
+}
+
+TEST(HeapTestSuite, TestFind)
+{
+    using PHeap = Heap<Data>;
+
+    class HeapTest : public PHeap
+    {
+    public:
+        HeapTest(const std::vector<Data> & init)
+        {
+            m_NbElements = init.size();
+            m_InternalData = init;
+        }
+
+        const InternalData & getInternalData() const { return m_InternalData; }
+    };
+
+    std::vector<Data> initial_data { {4}, {4}, {8}, {9}, {4}, {12}, {9}, {11}, {13} };
+
+    HeapTest heap(initial_data);
+    EXPECT_EQ(true, equal(initial_data, heap.getInternalData()));
+
+    Data looked = { 12 };
+    EXPECT_EQ(5, heap.find(looked));
+
+
+    Data not_in_heap = { 7 };
+    EXPECT_EQ(-1, heap.find(not_in_heap));
+}
+
+TEST(HeapTestSuite, TestGet)
+{
+    using PHeap = Heap<Data>;
+
+    class HeapTest : public PHeap
+    {
+    public:
+        HeapTest(const std::vector<Data> & init)
+        {
+            m_NbElements = init.size();
+            m_InternalData = init;
+        }
+
+        const InternalData & getInternalData() const { return m_InternalData; }
+    };
+
+    std::vector<Data> initial_data { {4}, {4}, {8}, {9}, {4}, {12}, {9}, {11}, {13} };
+
+    HeapTest heap(initial_data);
+    EXPECT_EQ(true, equal(initial_data, heap.getInternalData()));
+
+    Data looked = { 12 };
+    EXPECT_EQ(looked, heap.get(5));
+
+    EXPECT_THROW(heap.get(25), std::out_of_range);
+}
+
+TEST(HeapTestSuite, TestEraseDown)
+{
+    using PHeap = Heap<Data>;
+
+    class HeapTest : public PHeap
+    {
+    public:
+        HeapTest(const std::vector<Data> & init)
+        {
+            m_NbElements = init.size();
+            m_InternalData = init;
+        }
+
+        const InternalData & getInternalData() const { return m_InternalData; }
+    };
+
+    std::vector<Data> initial_data { {1}, {5}, {6}, {9}, {11}, {8}, {15}, {17}, {21} };
+    std::vector<Data> resulting_data { {1}, {9}, {6}, {17}, {11}, {8}, {15}, {21} };
+
+    HeapTest heap(initial_data);
+    EXPECT_EQ(true, equal(initial_data, heap.getInternalData()));
+
+    EXPECT_NO_THROW(heap.erase(1));
+
+    EXPECT_EQ(resulting_data.size(), heap.size());
+    EXPECT_EQ(true, equal(resulting_data, heap.getInternalData()));
+}
+
+TEST(HeapTestSuite, TestEraseUp)
+{
+    using PHeap = Heap<Data>;
+
+    class HeapTest : public PHeap
+    {
+    public:
+        HeapTest(const std::vector<Data> & init)
+        {
+            m_NbElements = init.size();
+            m_InternalData = init;
+        }
+
+        const InternalData & getInternalData() const { return m_InternalData; }
+    };
+
+    std::vector<Data> initial_data { {1}, {9}, {22}, {17}, {11}, {33}, {27}, {21}, {19} };
+    std::vector<Data> resulting_data { {1}, {9}, {19}, {17}, {11}, {22}, {27}, {21} };
+
+    HeapTest heap(initial_data);
+    EXPECT_EQ(true, equal(initial_data, heap.getInternalData()));
+
+    EXPECT_NO_THROW(heap.erase(5));
 
     EXPECT_EQ(resulting_data.size(), heap.size());
     EXPECT_EQ(true, equal(resulting_data, heap.getInternalData()));

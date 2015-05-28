@@ -5,10 +5,14 @@ class Heap
 {
 public:
     Heap();
+    Heap(const std::vector<Data> & data);
     size_t insert(const Data & element);
     Data extractRoot() throw (std::out_of_range);
     size_t size() const { return m_NbElements; }
     bool empty() const { return m_NbElements == 0; }
+    int find(const Data & data) const;
+    const Data & get(size_t index) const { return m_InternalData.at(index); }
+    bool erase(size_t index);
 
 protected:
     size_t parent  (size_t index) const { return (index == 0) ? index : (index - 1) / 2; }

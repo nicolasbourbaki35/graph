@@ -10,6 +10,8 @@
 
 #include "Graphviz.h"
 
+#include "Heap.h"
+
 namespace GraphLib 
 {
 
@@ -29,6 +31,9 @@ public:
     unsigned int getSource()      const { return m_source;      };
     unsigned int getDestination() const { return m_destination; };
     int          getWeight()      const { return m_weight;      };
+
+    bool operator< (const Edge & other)  const { return m_weight < other.m_weight; }
+    bool operator== (const Edge & other) const { return m_destination == other.m_destination; }
 
 private:
     unsigned int m_source;
@@ -80,6 +85,7 @@ public:
     using Vertices        = std::vector<VertexType>;
     using VertexProcessor = std::function<void(VertexType&)>;
     using EdgeProcessor   = std::function<void(EdgeType&)>;
+    using HeapType        = Heap<EdgeType>;
     
     Graph(size_t capacity, std::string caption = "")
         : m_caption(caption)
@@ -97,6 +103,76 @@ public:
 
     std::string const & getCaption() { return m_caption; } 
 
+    void findShortestPath( unsigned int start
+                             , VertexProcessor vp = VertexProcessor()
+                             , EdgeProcessor ep = EdgeProcessor())
+    {
+        std::vector<bool> processed(m_vertices.size(), false);
+        std::vector<int> lengthFromStart(m_vertices.size(), 0);
+        HeapType heap;
+        
+        processed[start] = true;
+
+        if (start > m_vertices.size() - 1)
+        {
+            throw std::out_of_range("Start position is out of range");
+        }
+        
+        VertexType vertex = m_vertices.at(start);
+        if (vp)
+            vp(vertex);
+
+        for(EdgeType & edge : vertex) 
+        {
+            heap.insert(edge);
+        }
+
+        for (unsigned int i = 0; i < m_vertices.size() - 1; ++i)
+        {
+            auto edge = heap.extractRoot();
+            size_t dest = edge.getDestination();
+            
+            while (processed[dest])
+            {
+                edge = heap.extractRoot();
+            }
+
+            processed[dest] = true;
+            lengthFromStart[dest] = edge.getWeight();
+            VertexType vertex_dest = m_vertices[dest];
+            
+            if (ep)
+                ep(edge);
+            if (vp)
+                vp(vertex_dest);
+
+            for (EdgeType new_edge : vertex_dest)
+            {
+                if (!processed[new_edge.getDestination()])
+                {
+                    int position = heap.find(new_edge);
+                    bool deleted = false;
+
+                    if (position != -1)
+                    {
+                        auto concurrent_edge = heap.get(position);
+                        if (lengthFromStart[dest] + new_edge.getWeight() < concurrent_edge.getWeight())
+                        {
+                            heap.erase(position);
+                            deleted = true;
+                        }
+                    }
+
+                    if (position == -1 || deleted)
+                    {
+                        EdgeType edge(dest, new_edge.getDestination(), new_edge.getWeight() + lengthFromStart[dest]);
+                        heap.insert(edge);
+                    }
+                }
+            }
+        }
+    }
+
     /*
      * Breadth first search
      */
@@ -109,7 +185,7 @@ public:
             throw std::out_of_range("Start position is out of range");
         }
 
-        std::queue<size_t>  q;
+        std::queue<size_t> q;
         std::vector<bool> discovered(m_vertices.size(), false);
         std::vector<bool> processed (m_vertices.size(), false);
         

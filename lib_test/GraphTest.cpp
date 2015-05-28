@@ -99,3 +99,34 @@ TEST(GraphTestSuite, BreadthFirstSearch)
     }
 }
 
+TEST(GraphTestSuite, DijkstraSinglePath)
+{
+    Graph<> g(4);
+    VertexProcessor vp;
+    EdgeProcessor   ep;
+    
+    /*    0
+         / \
+        1 - 2
+        |  /
+         3     */
+
+    g.addEdge(Edge(0, 1, 1));
+    g.addEdge(Edge(0, 2, 4));
+    g.addEdge(Edge(1, 3, 6));
+    g.addEdge(Edge(1, 2, 2));
+    g.addEdge(Edge(2, 3, 3));
+    
+    g.findShortestPath(0, std::ref(vp), std::ref(ep));
+    
+    for(unsigned int i=0; i<vp.indices.size(); ++i)
+    { 
+        EXPECT_EQ(i, vp.indices[i]);
+    }
+    for(unsigned int i=0; i<ep.weights.size(); ++i)
+    {
+        EXPECT_EQ(i+1 + (i > 0 ? (unsigned int)ep.weights[i-1] : 0), (unsigned int)ep.weights[i]);
+    }
+
+}
+
